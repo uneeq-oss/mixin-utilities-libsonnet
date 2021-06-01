@@ -8,12 +8,23 @@ local grafana = import 'github.com/grafana/grafonnet-lib/grafonnet/grafana.libso
     graphTooltip: 1,  // enum for `shared_crosshair`
     templating: {
       list: [{
-        name: 'datasource',
+        current: {
+          selected: false,
+          text: 'prometheus',
+          value: 'prometheus',
+        },
+        description: 'The datasource to use for this dashboard.',
+        'error': null,
+        hide: 0,
+        includeAll: false,
         label: 'Data Source',
+        multi: false,
+        name: 'datasource',
+        options: [],
         query: 'prometheus',
-        current: true,
-        description: 'The data source to use for all panels of this dashboard.',
         refresh: 1,
+        regex: '',
+        skipUrlSync: false,
         type: 'datasource',
       }],
     },
