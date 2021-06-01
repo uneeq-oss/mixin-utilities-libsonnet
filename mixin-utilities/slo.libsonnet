@@ -27,7 +27,7 @@ local db = import 'dashboards.libsonnet';
       rates: ['5m', '30m', '1h', '2h', '6h', '1d', '3d'],
     } + param,
 
-    recordingRuleGroups+: {
+    recordingRuleGroups+: [{
       name: '%s rules' % slo.dashboardName,
 
       // These can be relatively expensive rules, and they're not the type of metrics
@@ -59,8 +59,8 @@ local db = import 'dashboards.libsonnet';
           },
         },
       ],
+    }],
 
-    },
     local shortDbName = std.strReplace(slo.dashboardName, ' ', '_'),
     local thresholds = [
       { value: null, color: 'green' },
