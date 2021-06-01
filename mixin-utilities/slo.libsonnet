@@ -60,82 +60,82 @@ local db = import 'dashboards.libsonnet';
         },
       ],
 
-      local shortDbName = std.strReplace(slo.dashboardName, ' ', '_'),
-      local thresholds = [
-        { value: null, color: 'green' },
-        { value: slo.latencyBudget / 2, color: 'yellow' },
-        { value: slo.latencyBudget, color: 'red' },
-      ],
-      // Returns grafana dashboards as a map, can be added directly to grafanaDashboards
-      // from kube-prometheus.
-      grafanaDashboards+: {
-        ['%s.json' % shortDbName]:
-          db.dashboardDefaults() +
-          grafana.dashboard.new(
-            title=slo.dashboardName,
-            editable=true,
-            refresh='10s',
-            uid=shortDbName,
-          )
-          .addRow(
-            grafana.row.new(title='SLO Details')
-            .addPanel(grafana.text.new(
-              title='', content=|||
-                **Placeholder for description of SLO perhaps? Could fold into the alert as well.**
+    },
+    local shortDbName = std.strReplace(slo.dashboardName, ' ', '_'),
+    local thresholds = [
+      { value: null, color: 'green' },
+      { value: slo.latencyBudget / 2, color: 'yellow' },
+      { value: slo.latencyBudget, color: 'red' },
+    ],
+    // Returns grafana dashboards as a map, can be added directly to grafanaDashboards
+    // from kube-prometheus.
+    grafanaDashboards+: {
+      ['%s.json' % shortDbName]:
+        db.dashboardDefaults() +
+        grafana.dashboard.new(
+          title=slo.dashboardName,
+          editable=true,
+          refresh='10s',
+          uid=shortDbName,
+        )
+        .addRow(
+          grafana.row.new(title='SLO Details')
+          .addPanel(grafana.text.new(
+            title='', content=|||
+              **Placeholder for description of SLO perhaps? Could fold into the alert as well.**
 
-                **Latency Target:** %ss
+              **Latency Target:** %ss
 
-                **Latency Budget:** %0.2f%%
-              ||| % [slo.latencyTarget, slo.latencyBudget * 100]
+              **Latency Budget:** %0.2f%%
+            ||| % [slo.latencyTarget, slo.latencyBudget * 100]
+          ))
+          .addPanel(
+            grafana.statPanel.new(
+              title='Latency Budget used (30d)',
+              description='The percent of the latency budget used in the last 30d.',
+              datasource='$datasource',
+              unit='percentunit',
+            )
+            .addTarget(prom(
+              expr='latencytarget:%(metric)s:rate30d / latencybudget:%(metric)s' % { metric: slo.metric },
+              instant=true,
             ))
-            .addPanel(
-              grafana.statPanel.new(
-                title='Latency Budget used (30d)',
-                description='The percent of the latency budget used in the last 30d.',
-                datasource='$datasource',
-                unit='percentunit',
-              )
-              .addTarget(prom(
-                expr='latencytarget:%(metric)s:rate30d / latencybudget:%(metric)s' % { metric: slo.metric },
-                instant=true,
-              ))
-              .addThresholds(thresholds)
-            )
-            .addPanel(
-              grafana.statPanel.new(
-                title='Burn Rates',
-                description='Burn rate of the latency budget, for different sliding windows.',
-                datasource='$datasource',
-                unit='percentunit',
-                reducerFunction='lastNotNull',
-                min=0,
-              )
-              .addTargets([
-                prom(expr='latencytarget:%s:rate%s' % [slo.metric, rate], legendFormat=rate)
-                for rate in ['5m', '30m', '1h', '2h', '6h', '1d', '3d']
-              ])
-              .addThresholds(thresholds)
-            )
+            .addThresholds(thresholds)
           )
-          .addRow(
-            grafana.row.new(title='Charts')
-            .addPanel(
-              db.graphPanelDefaults() +
-              grafana.graphPanel.new(
-                title='Burn Rate',
-                description='Current Burn Rates',
-                format='percentunit',
-                span=12,
-                min=0,
-              )
-              .addTargets([
-                prom(expr='latencybudget:%s' % slo.metric, legendFormat='Budget'),
-                prom(expr='latencytarget:%s:rate5m' % slo.metric, legendFormat='rate5m'),
-                prom(expr='latencytarget:%s:rate1h' % slo.metric, legendFormat='rate1h'),
-              ])
+          .addPanel(
+            grafana.statPanel.new(
+              title='Burn Rates',
+              description='Burn rate of the latency budget, for different sliding windows.',
+              datasource='$datasource',
+              unit='percentunit',
+              reducerFunction='lastNotNull',
+              min=0,
             )
-          ),
-      },
+            .addTargets([
+              prom(expr='latencytarget:%s:rate%s' % [slo.metric, rate], legendFormat=rate)
+              for rate in ['5m', '30m', '1h', '2h', '6h', '1d', '3d']
+            ])
+            .addThresholds(thresholds)
+          )
+        )
+        .addRow(
+          grafana.row.new(title='Charts')
+          .addPanel(
+            db.graphPanelDefaults() +
+            grafana.graphPanel.new(
+              title='Burn Rate',
+              description='Current Burn Rates',
+              format='percentunit',
+              span=12,
+              min=0,
+            )
+            .addTargets([
+              prom(expr='latencybudget:%s' % slo.metric, legendFormat='Budget'),
+              prom(expr='latencytarget:%s:rate5m' % slo.metric, legendFormat='rate5m'),
+              prom(expr='latencytarget:%s:rate1h' % slo.metric, legendFormat='rate1h'),
+            ])
+          )
+        ),
     },
   },
 }
