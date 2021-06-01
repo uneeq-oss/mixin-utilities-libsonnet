@@ -76,8 +76,8 @@ local db = import 'dashboards.libsonnet';
           editable=true,
           refresh='10s',
           uid=shortDbName,
-        ) + db.dashboardDefaults() +
-        grafana.dashboard.addRow(
+        )
+        .addRow(
           grafana.row.new(title='SLO Details')
           .addPanel(grafana.text.new(
             title='', content=|||
@@ -134,7 +134,8 @@ local db = import 'dashboards.libsonnet';
               prom(expr='latencytarget:%s:rate1h' % slo.metric, legendFormat='rate1h'),
             ])
           )
-        ),
+        )
+        + db.dashboardDefaults(),
     },
   },
 }
