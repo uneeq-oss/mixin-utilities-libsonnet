@@ -1,5 +1,6 @@
 local grafana = import 'github.com/grafana/grafonnet-lib/grafonnet/grafana.libsonnet';
 local prom = grafana.prometheus.target;
+local db = import 'dashboards.libsonnet';
 
 {
   // latencyburnDashboard
@@ -63,7 +64,7 @@ local prom = grafana.prometheus.target;
       // from kube-prometheus.
       grafanaDashboards: {
         ['%s.json' % shortDbName]:
-          dashboardDefaults() +
+          db.dashboardDefaults() +
           grafana.dashboard.new(
             title=slo.dashboardName,
             editable=true,
@@ -113,7 +114,7 @@ local prom = grafana.prometheus.target;
           .addRow(
             grafana.row.new(title='Charts')
             .addPanel(
-              graphPanelDefaults +
+              db.graphPanelDefaults +
               grafana.graphPanel.new(
                 title='Burn Rate',
                 description='Current Burn Rates',
