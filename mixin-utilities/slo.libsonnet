@@ -120,7 +120,7 @@ local db = import 'dashboards.libsonnet';
           .addRow(
             grafana.row.new(title='Charts')
             .addPanel(
-              db.graphPanelDefaults +
+              db.graphPanelDefaults() +
               grafana.graphPanel.new(
                 title='Burn Rate',
                 description='Current Burn Rates',
