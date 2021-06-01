@@ -6,12 +6,19 @@ local grafana = import 'github.com/grafana/grafonnet-lib/grafonnet/grafana.libso
 {
   dashboardDefaults():: {
     graphTooltip: 1,  // enum for `shared_crosshair`
-    templates: [{
-      name: 'datasource',
-      label: 'Data Source',
-      query: 'prometheus',
-      current: true,
-    }],
+    templating: {
+      list: [{
+        name: 'datasource',
+        label: 'Data Source',
+        query: 'prometheus',
+        current: true,
+        description: 'The data source to use for all panels of this dashboard.',
+        refresh: 1,
+        type: 'datasource',
+      }],
+    },
+
+
   },
 
   graphPanelDefaults():: {
