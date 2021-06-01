@@ -60,11 +60,11 @@ local db = import 'dashboards.libsonnet';
         },
       ],
 
-      local shortDbName = std.strReplace(param.dashboardName, ' ', '_'),
+      local shortDbName = std.strReplace(slo.dashboardName, ' ', '_'),
       local thresholds = [
         { value: null, color: 'green' },
-        { value: param.latencyBudget / 2, color: 'yellow' },
-        { value: param.latencyBudget, color: 'red' },
+        { value: slo.latencyBudget / 2, color: 'yellow' },
+        { value: slo.latencyBudget, color: 'red' },
       ],
       // Returns grafana dashboards as a map, can be added directly to grafanaDashboards
       // from kube-prometheus.
