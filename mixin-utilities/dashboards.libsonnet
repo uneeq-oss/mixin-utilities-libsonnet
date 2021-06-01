@@ -34,6 +34,5 @@ local grafana = import 'github.com/grafana/grafonnet-lib/grafonnet/grafana.libso
 
   graphPanelDefaults():: {
     datasource: '$datasource',
-    fillGradient: 5,
   },
 }

@@ -126,13 +126,14 @@ local db = import 'dashboards.libsonnet';
               format='percentunit',
               span=12,
               min=0,
+              fillGradient=5,
             )
             .addTargets([
-              prom(expr='latencybudget:%s' % slo.metric, legendFormat='Budget'),
-              prom(expr='latencytarget:%s:rate5m' % slo.metric, legendFormat='rate5m'),
-              prom(expr='latencytarget:%s:rate1h' % slo.metric, legendFormat='rate1h'),
+              prom(datasource='$datasource', expr='latencybudget:%s' % slo.metric, legendFormat='Budget'),
+              prom(datasource='$datasource', expr='latencytarget:%s:rate5m' % slo.metric, legendFormat='rate5m'),
+              prom(datasource='$datasource', expr='latencytarget:%s:rate1h' % slo.metric, legendFormat='rate1h'),
             ])
-          ) + db.graphPanelDefaults()
+          )
         )
         + db.dashboardDefaults(),
     },
