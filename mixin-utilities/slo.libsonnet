@@ -27,7 +27,7 @@ local db = import 'dashboards.libsonnet';
       rates: ['5m', '30m', '1h', '2h', '6h', '1d', '3d'],
     } + param,
 
-    recordingrules+: {
+    recordingRuleGroups+: {
       name: '%s rules' % slo.dashboardName,
 
       // These can be relatively expensive rules, and they're not the type of metrics
