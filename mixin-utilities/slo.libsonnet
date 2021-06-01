@@ -27,7 +27,7 @@ local db = import 'dashboards.libsonnet';
       rates: ['5m', '30m', '1h', '2h', '6h', '1d', '3d'],
     } + param,
 
-    recordingRuleGroup: {
+    recordingRuleGroup+: {
       name: '%s rules' % slo.dashboardName,
 
       // These can be relatively expensive rules, and they're not the type of metrics
@@ -68,7 +68,7 @@ local db = import 'dashboards.libsonnet';
       ],
       // Returns grafana dashboards as a map, can be added directly to grafanaDashboards
       // from kube-prometheus.
-      grafanaDashboards: {
+      grafanaDashboards+: {
         ['%s.json' % shortDbName]:
           db.dashboardDefaults() +
           grafana.dashboard.new(
