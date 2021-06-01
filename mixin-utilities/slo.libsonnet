@@ -120,7 +120,6 @@ local db = import 'dashboards.libsonnet';
         .addRow(
           grafana.row.new(title='Charts')
           .addPanel(
-            db.graphPanelDefaults() +
             grafana.graphPanel.new(
               title='Burn Rate',
               description='Current Burn Rates',
@@ -133,7 +132,7 @@ local db = import 'dashboards.libsonnet';
               prom(expr='latencytarget:%s:rate5m' % slo.metric, legendFormat='rate5m'),
               prom(expr='latencytarget:%s:rate1h' % slo.metric, legendFormat='rate1h'),
             ])
-          )
+          ) + db.graphPanelDefaults()
         )
         + db.dashboardDefaults(),
     },
