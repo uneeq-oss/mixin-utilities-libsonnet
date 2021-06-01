@@ -71,7 +71,6 @@ local db = import 'dashboards.libsonnet';
     // from kube-prometheus.
     grafanaDashboards+: {
       ['%s.json' % shortDbName]:
-        db.dashboardDefaults() +
         grafana.dashboard.new(
           title=slo.dashboardName,
           editable=true,
@@ -135,7 +134,8 @@ local db = import 'dashboards.libsonnet';
               prom(expr='latencytarget:%s:rate1h' % slo.metric, legendFormat='rate1h'),
             ])
           )
-        ),
+        )
+        + db.dashboardDefaults(),
     },
   },
 }
