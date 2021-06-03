@@ -81,8 +81,6 @@ local db = import 'dashboards.libsonnet';
           grafana.row.new(title='SLO Details')
           .addPanel(grafana.text.new(
             title='', content=|||
-              **Placeholder for description of SLO perhaps? Could fold into the alert as well.**
-
               **Latency Target:** %ss
 
               **Latency Budget:** %0.2f%%
@@ -94,12 +92,17 @@ local db = import 'dashboards.libsonnet';
               description='The percent of the latency budget used in the last 30d.',
               datasource='$datasource',
               unit='percentunit',
+              reducerFunction='lastNotNull'
             )
             .addTarget(prom(
               expr='latencytarget:%(metric)s:rate30d / latencybudget:%(metric)s' % { metric: slo.metric },
-              instant=true,
+              intervalFactor=1,
             ))
-            .addThresholds(thresholds)
+            .addThresholds([
+              { value: null, color: 'green' },
+              { value: 0.75, color: 'yellow' },
+              { value: 1, color: 'red' },
+            ])
           )
           .addPanel(
             grafana.statPanel.new(
@@ -133,7 +136,15 @@ local db = import 'dashboards.libsonnet';
               prom(expr='latencybudget:%s' % slo.metric, legendFormat='Budget'),
               prom(expr='latencytarget:%s:rate5m' % slo.metric, legendFormat='rate5m'),
               prom(expr='latencytarget:%s:rate1h' % slo.metric, legendFormat='rate1h'),
+              prom(expr='latencytarget:%s:rate30d' % slo.metric, legendFormat='rate30d'),
             ])
+            .addSeriesOverride({
+              alias: 'Budget',
+              dashes: true,
+              fill: 0,
+              fillGradient: 0,
+              color: 'red',
+            })
           )
         )
         + db.dashboardDefaults(),
