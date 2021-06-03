@@ -61,7 +61,7 @@ local db = import 'dashboards.libsonnet';
       ],
     }],
 
-    local shortDbName = std.strReplace(slo.dashboardName, ' ', '_'),
+    local shortDbName = std.asciiLower(std.strReplace(slo.dashboardName, ' ', '-')),
     local thresholds = [
       { value: null, color: 'green' },
       { value: slo.latencyBudget / 2, color: 'yellow' },
