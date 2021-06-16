@@ -1,3 +1,5 @@
+// Wrapper lib to add nice defaults to Grafonnet 7.0
+
 local grafana = import 'github.com/grafana/grafonnet-lib/grafonnet-7.0/grafana.libsonnet';
 
 {
