@@ -1,5 +1,6 @@
 // A bunch of Grafana defaults we like to see around the place
 // Can be added to the referenced Grafonnet functions
+// To be used with the origional Grafonnet.
 
 local grafana = import 'github.com/grafana/grafonnet-lib/grafonnet/grafana.libsonnet';
 
