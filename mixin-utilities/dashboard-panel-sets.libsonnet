@@ -1,6 +1,7 @@
 // Common sets of panels which can be reused on many dashboards.
 
 local g = import './grafonnet-defaults.libsonnet';
+local grafana = import 'github.com/grafana/grafonnet-lib/grafonnet-7.0/grafana.libsonnet';
 
 {
   panelSets:: {
