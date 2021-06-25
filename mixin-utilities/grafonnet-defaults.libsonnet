@@ -11,12 +11,13 @@ local grafana = import 'github.com/grafana/grafonnet-lib/grafonnet-7.0/grafana.l
       description=null,
       timeFrom='now-1d',
       refreshIntervals=['10s', '30s', '1m', '5m', '15m'],
+      refresh='10s',
     )::
       grafana.dashboard.new(
         title=title,
         description=description,
         editable=true,
-        refresh='10s',
+        refresh=refresh,
         uid=std.strReplace(title, ' ', '_'),
         graphTooltip=1,  // Shared cross hair
       )
@@ -72,7 +73,8 @@ local grafana = import 'github.com/grafana/grafonnet-lib/grafonnet-7.0/grafana.l
           fill=fill,
           fillGradient=fillGradient,
         )
-        .setGridPos() {
+        .setGridPos() +
+        {
           maxDataPoints: 500,
 
           setDefaultLegend(alignAsTable=null):: self.setLegend(
@@ -93,6 +95,9 @@ local grafana = import 'github.com/grafana/grafonnet-lib/grafonnet-7.0/grafana.l
                 // object.
               },
             ] },
+
+          addTargets(targets):: std.foldl(function(p, t) p.addTarget(t), targets, self),
+
         },
     },
 
@@ -109,6 +114,21 @@ local grafana = import 'github.com/grafana/grafonnet-lib/grafonnet-7.0/grafana.l
         )
         .setGridPos(),
     },
+
+    stat:: {
+      new(
+        title,
+        datasource='${datasource}',
+        description=null,
+      )::
+        grafana.panel.stat.new(
+          title=title,
+          description=description,
+          datasource=datasource,
+        )
+        .setGridPos(),
+    },
+
   },
 
   target:: { prometheus:: {
