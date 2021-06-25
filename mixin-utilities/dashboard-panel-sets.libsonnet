@@ -103,7 +103,13 @@ local p = g.target.prometheus.new;
     // These could be reused in a couple of dashboards, hence the object to make easier to share
     // around. Intended to accept a similar object as slo-libsonnet, with some additions. Required
     // fields: sloName, latencytarget, latencyBudget, metric.
-    sloLatencyBurn(slo):: {
+    sloLatencyBurn(param):: {
+      local slo = {
+        sloName: error 'Must set `sloName` for sloLatencyBurn',
+        latencytarget: error 'Must set `latencytarget` for sloLatencyBurn',
+        latencyBudget: error 'Must set `latencyBudget` for sloLatencyBurn',
+        metric: error 'Must set `metric` for sloLatencyBurn',
+      } + param,
       [slo.sloName]: [
         // Info panel
         grafana.panel.text.new(
