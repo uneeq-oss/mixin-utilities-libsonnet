@@ -109,15 +109,16 @@ local p = g.target.prometheus.new;
         latencytarget: error 'Must set `latencytarget` for sloLatencyBurn',
         latencyBudget: error 'Must set `latencyBudget` for sloLatencyBurn',
         metric: error 'Must set `metric` for sloLatencyBurn',
+        unit: 's',
       } + param,
-      [slo.sloName]: [
+      [param.sloName]: [
         // Info panel
         grafana.panel.text.new(
           content=|||
             # %s
-            - Target: `%ss`
+            - Target: `%s%s`
             - Budget: `%s%%`
-          ||| % [slo.sloName, slo.latencyTarget, slo.latencyBudget * 100]
+          ||| % [slo.sloName, slo.latencyTarget, slo.unit, slo.latencyBudget * 100]
         )
         .setGridPos(w=4, h=5),
 
