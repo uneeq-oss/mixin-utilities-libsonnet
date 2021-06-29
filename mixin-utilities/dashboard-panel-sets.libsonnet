@@ -112,16 +112,7 @@ local p = g.target.prometheus.new;
         unit: 's',
       } + param,
       [param.sloName]: [
-        // Info panel
-        grafana.panel.text.new(
-          content=|||
-            # %s
-            - Target: `%s%s`
-            - Budget: `%s%%`
-          ||| % [slo.sloName, slo.latencyTarget, slo.unit, slo.latencyBudget * 100]
-        )
-        .setGridPos(w=4, h=5),
-
+        grafana.panel.row.new(collapsed=false, title=slo.sloName),
         // "Have we hit our SLO" panel
         g.panel.stat.new(
           title='Budget Used [30d]',
@@ -131,7 +122,16 @@ local p = g.target.prometheus.new;
         .addThresholdStep(value=0, color='green')
         .addThresholdStep(value=0.9, color='yellow')
         .addThresholdStep(value=1, color='red')
-        .setGridPos(w=4, h=5).setFieldConfig(unit='percentunit'),
+        .setGridPos(w=4, h=7).setFieldConfig(unit='percentunit'),
+
+        // Info panel
+        grafana.panel.text.new(
+          content=|||
+            - Target: `%s%s`
+            - Budget: `%s%%`
+          ||| % [slo.latencyTarget, slo.unit, slo.latencyBudget * 100]
+        )
+        .setGridPos(w=4, h=3),
 
         // Alert threshold graphs
         // Critical
