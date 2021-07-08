@@ -99,7 +99,7 @@ local p = g.target.prometheus.new;
       + { interval: '1m' },
     ],
 
-    // Reutrns an object, with a key set to slo.sloName. This is an array of panels for this SLO
+    // Reutrns an object, with a key set to slo.sloName. This is an array of panels for this SLO.
     // These could be reused in a couple of dashboards, hence the object to make easier to share
     // around. Intended to accept a similar object as slo-libsonnet, with some additions. Required
     // fields: sloName, latencytarget, latencyBudget, metric.
@@ -108,28 +108,44 @@ local p = g.target.prometheus.new;
         sloName: error 'Must set `sloName` for sloLatencyBurn',
         latencytarget: error 'Must set `latencytarget` for sloLatencyBurn',
         latencyBudget: error 'Must set `latencyBudget` for sloLatencyBurn',
+        latencyObjective: 1 - self.latencyBudget,
         metric: error 'Must set `metric` for sloLatencyBurn',
         unit: 's',
       } + param,
       [param.sloName]: [
-        grafana.panel.row.new(collapsed=false, title=slo.sloName),
+        grafana.panel.row.new(collapsed=false, title=param.sloName),
         // "Have we hit our SLO" panel
         g.panel.stat.new(
-          title='Budget Used [30d]',
-          description='How much of the error budget has been used over the last 30d'
+          title='Spent Budget [30d]',
+          description='Ratio of the error budget has been used over the last 30d. Less than 1 means the SLO was achieved.'
         )
         .addTarget(p('latencytarget:%(m)s:rate30d / latencybudget:%(m)s' % { m: slo.metric }, ''))
         .addThresholdStep(value=0, color='green')
         .addThresholdStep(value=0.9, color='yellow')
         .addThresholdStep(value=1, color='red')
-        .setGridPos(w=4, h=7).setFieldConfig(unit='percentunit'),
+        .setFieldConfig(unit='X')
+        .setGridPos(w=4, h=4),
+
+        g.panel.stat.new(title='SLI [30d]')
+        .addTarget(p('1 - latencytarget:%s:rate30d' % slo.metric, ''))
+        .addThresholdStep(value=0, color='red')
+        .addThresholdStep(value=slo.latencyObjective, color='yellow')
+        .addThresholdStep(value=slo.latencyObjective + slo.latencyBudget * 0.1, color='green')
+        .setFieldConfig(unit='percentunit', max=1.1)
+        .setGridPos(w=4, h=4),
 
         // Info panel
         grafana.panel.text.new(
           content=|||
             - Target: `%s%s`
             - Budget: `%s%%`
-          ||| % [slo.latencyTarget, slo.unit, slo.latencyBudget * 100]
+            - Objective: `%s%%`
+          ||| % [
+            slo.latencyTarget,
+            slo.unit,
+            slo.latencyBudget * 100,
+            slo.latencyObjective * 100,
+          ]
         )
         .setGridPos(w=4, h=3),
 
@@ -146,7 +162,7 @@ local p = g.target.prometheus.new;
         ])
         .addSeriesOverride(alias='threshold', dashes=true, fill=0, fillGradient=0, color='red')
         .setYaxes('percentunit')
-        .setGridPos(w=5, h=10, x=4),
+        .setGridPos(w=5, h=11, x=4),
 
         g.panel.graph.new(
           title='Alert thresholds: critical slow burn',
@@ -159,7 +175,7 @@ local p = g.target.prometheus.new;
         ])
         .addSeriesOverride(alias='threshold', dashes=true, fill=0, fillGradient=0, color='red')
         .setYaxes('percentunit')
-        .setGridPos(w=5, h=10, x=9),
+        .setGridPos(w=5, h=11, x=9),
 
         // Warning
         g.panel.graph.new(
@@ -173,7 +189,7 @@ local p = g.target.prometheus.new;
         ])
         .addSeriesOverride(alias='threshold', dashes=true, fill=0, fillGradient=0, color='#FA6400')
         .setYaxes('percentunit')
-        .setGridPos(w=5, h=10, x=14),
+        .setGridPos(w=5, h=11, x=14),
 
         g.panel.graph.new(
           title='Alert thresholds: warning slow burn',
@@ -186,7 +202,89 @@ local p = g.target.prometheus.new;
         ])
         .addSeriesOverride(alias='threshold', dashes=true, fill=0, fillGradient=0, color='#FA6400')
         .setYaxes('percentunit')
-        .setGridPos(w=5, h=10, x=19),
+        .setGridPos(w=5, h=11, x=19),
+      ],
+    },
+
+    // Returns an object with a key set to slo.sloName. This is an array of panels for this SLO.
+    // These could be reused in a couple of dashboards, hence the object to make easier to share
+    // around. This is intended to accept a similar object as errorburn in slo-libsonnet, but
+    // modified somewhat for applications that may have different success and failure metrics.
+    // Only required fields are specified.
+    sloErrorBurn(param):: {
+      local slo = {
+        sloName: error 'Must set `sloName` for sloErrorBurn',
+        errorBudget: error 'Must set `errorBudget` for sloErrorBurn',
+        errorObjective: 1 - self.errorBudget,
+        successMetric: error 'Must set successMetric for sloErrorBurn',
+        recordingrule: '%s:burnrate%%s' % self.successMetric,
+      } + param,
+
+      [param.sloName]: [
+        grafana.panel.row.new(collapsed=false, title=param.sloName),
+        // Error budget spent
+        g.panel.stat.new(
+          title='Spent Budget [30d]',
+          description='Ratio of the error budget has been used over the last 30d. Less than 1 means the SLO was achieved.'
+        )
+        .addTarget(p('%(m)s:burnrate30d / %(m)s:errorbudget' % { m: slo.successMetric }, ''))
+        .addThresholdStep(value=0, color='green')
+        .addThresholdStep(value=0.9, color='yellow')
+        .addThresholdStep(value=1, color='red')
+        .setFieldConfig(unit='X')
+        .setGridPos(w=4, h=4),
+
+        g.panel.stat.new(title='SLI [30d]')
+        .addTarget(p('1 - %s:burnrate30d' % slo.successMetric, ''))
+        .addThresholdStep(value=0, color='red')
+        .addThresholdStep(value=slo.errorObjective, color='yellow')
+        .addThresholdStep(value=slo.errorObjective + slo.errorBudget * 0.1, color='green')
+        .setFieldConfig(unit='percentunit', max=1.1)
+        .setGridPos(w=4, h=4),
+
+        // Info panel
+        grafana.panel.text.new(
+          content=|||
+            - Budget: `%g%%`
+            - Objective: `%g%%`
+          ||| % [slo.errorBudget * 100, slo.errorObjective * 100]
+        )
+        .setGridPos(w=4, h=2),
+      ] + [
+        g.panel.graph.new(
+          title='Alert thresholds: %(sev)s rate%(burns)s for %(for)s' % {
+            sev: w.severity,
+            burns: '%s/%s' % [w.long, w.short],
+            'for': w['for'],
+          },
+          description=|||
+            Alert thresholds to trigger a %(sev)s alert for %(name)s.
+
+            Both `rate%(long)s` and `rate%(short)s` must be above the threshold
+            of `%(thresh)g%%` for `%(for)s` to fire the alert.
+          ||| % {
+            sev: w.severity,
+            name: slo.sloName,
+            long: w.long,
+            short: w.short,
+            thresh: slo.errorBudget * w.factor * 100,
+            'for': w['for'],
+          },
+        )
+        .addTargets([
+          p('%s:burnrate%s' % [slo.successMetric, w.long], 'rate%s' % w.long),
+          p('%s:burnrate%s' % [slo.successMetric, w.short], 'rate%s' % w.short),
+          p('%s:errorbudget * %s' % [slo.successMetric, w.factor], 'threshold'),
+        ],)
+        .addSeriesOverride(alias='threshold', dashes=true, fill=0, fillGradient=0, color='#FA6400')
+        .setYaxes('percentunit')
+        .setGridPos(
+          w=5,
+          h=10,
+          // Offset horizontally by index of w in arr windows
+          x=std.find(w, slo.windows)[0] * 5 + 4
+        )
+        for w in slo.windows
       ],
     },
   },
