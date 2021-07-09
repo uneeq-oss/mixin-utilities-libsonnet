@@ -18,7 +18,7 @@ local grafana = import 'github.com/grafana/grafonnet-lib/grafonnet-7.0/grafana.l
         description=description,
         editable=true,
         refresh=refresh,
-        uid=std.strReplace(title, ' ', '_'),
+        uid=std.strReplace(std.strReplace(title, '/', '_'), ' ', '_'),
         graphTooltip=1,  // Shared cross hair
       )
       .setTime(from=timeFrom)
