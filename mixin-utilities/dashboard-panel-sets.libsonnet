@@ -60,7 +60,7 @@ local p = g.target.prometheus.new;
       .setLegend(avg=true, max=true)
       .setYaxes('decbytes')
       .addTarget(g.target.prometheus.new(
-        'avg by (pod) (max_over_time(container_memory_usage_bytes{container="%s"}[$__interval]))'
+        'avg by (pod) (max_over_time(container_memory_working_set_bytes{container="%s"}[$__interval]))'
         % containerName,
         '{{pod}}',
       ))
