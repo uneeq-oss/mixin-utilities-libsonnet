@@ -214,10 +214,25 @@ local p = g.target.prometheus.new;
     sloErrorBurn(param):: {
       local slo = {
         sloName: error 'Must set `sloName` for sloErrorBurn',
-        errorBudget: error 'Must set `errorBudget` for sloErrorBurn',
+        errorBudget:
+          if std.objectHas(param, 'target') then
+            1 - param.target
+          else
+            error 'Must set `errorBudget` for sloErrorBurn',
         errorObjective: 1 - self.errorBudget,
-        successMetric: error 'Must set successMetric for sloErrorBurn',
+        successMetric:
+          if std.objectHas(param, 'metric') then
+            param.metric
+          else
+            error 'Must set `successMetric` for sloErrorBurn',
         recordingrule: '%s:burnrate%%s' % self.successMetric,
+
+        windows: [
+          { severity: 'critical', 'for': '2m', long: '1h', short: '5m', factor: 14.4 },
+          { severity: 'critical', 'for': '15m', long: '6h', short: '30m', factor: 6 },
+          { severity: 'warning', 'for': '1h', long: '1d', short: '2h', factor: 3 },
+          { severity: 'warning', 'for': '3h', long: '3d', short: '6h', factor: 1 },
+        ],
       } + param,
 
       [param.sloName]: [

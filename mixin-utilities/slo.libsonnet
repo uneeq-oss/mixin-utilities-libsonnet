@@ -47,6 +47,53 @@ local db = import 'dashboards.libsonnet';
         },
       },
     ],
+  },
 
+  // errorburnDashboardRules
+  // Provides a recording rule group to be used with the `sloErrorBurn` panel set.
+  errorburnDashboardRules(param):: {
+    local slo = {
+      sloName: error 'must set `sloName` for error burn',
+      metric: error 'must set metric for error burn',
+      target: error 'must set target for error burn',
+
+      selectors: error 'must set selectors for error burn',
+      errorSelectors: error 'must set errorSelectors for error burn',
+
+      windows: [
+        { severity: 'critical', 'for': '2m', long: '1h', short: '5m', factor: 14.4 },
+        { severity: 'critical', 'for': '15m', long: '6h', short: '30m', factor: 6 },
+        { severity: 'warning', 'for': '1h', long: '1d', short: '2h', factor: 3 },
+        { severity: 'warning', 'for': '3h', long: '3d', short: '6h', factor: 1 },
+      ],
+    } + param,
+
+    name: '%s rules' % slo.sloName,
+
+    // These can be relatively expensive rules, and they're not the type of metrics
+    // that'll need viewed with a high resolution. Run at a less frequent interval
+    // to be nice to Prometheus.
+    interval: '90s',
+    rules: [
+      {
+        // Record the SLO as a metric. Nicer to have on graphs. Round to 11 decimal
+        // places, handles floating point math.
+        record: '%s:errorbudget' % slo.metric,
+        expr: std.toString(1 - slo.target),
+      },
+      {
+        // a 30d caluclation of our error burn.
+        record: 'errortarget:%s:rate30d' % slo.metric,
+        expr: |||
+          sum(rate(%(metric)s{%(errorSelectors)s}[30d]))
+          /
+          sum(rate(%(metric)s{%(selectors)s}[30d]))
+        ||| % {
+          metric: slo.metric,
+          selectors: std.join(',', slo.selectors),
+          errorSelectors: std.join(',', slo.selectors + slo.errorSelectors),
+        },
+      },
+    ],
   },
 }
