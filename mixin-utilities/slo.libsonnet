@@ -79,7 +79,7 @@ local db = import 'dashboards.libsonnet';
         // Record the SLO as a metric. Nicer to have on graphs. Round to 11 decimal
         // places, handles floating point math.
         record: '%s:errorbudget' % slo.metric,
-        expr: std.toString(1 - slo.target),
+        expr: '%0.11f' % slo.target,
       },
       {
         // a 30d caluclation of our error burn.
