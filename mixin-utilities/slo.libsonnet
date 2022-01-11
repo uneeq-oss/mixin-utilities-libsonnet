@@ -83,7 +83,7 @@ local db = import 'dashboards.libsonnet';
       },
       {
         // a 30d caluclation of our error burn.
-        record: 'errortarget:%s:rate30d' % slo.metric,
+        record: '%s:burnrate30d' % slo.metric,
         expr: |||
           sum(rate(%(metric)s{%(errorSelectors)s}[30d]))
           /
