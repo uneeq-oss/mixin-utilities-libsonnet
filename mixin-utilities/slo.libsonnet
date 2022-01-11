@@ -59,13 +59,6 @@ local db = import 'dashboards.libsonnet';
 
       selectors: error 'must set selectors for error burn',
       errorSelectors: error 'must set errorSelectors for error burn',
-
-      windows: [
-        { severity: 'critical', 'for': '2m', long: '1h', short: '5m', factor: 14.4 },
-        { severity: 'critical', 'for': '15m', long: '6h', short: '30m', factor: 6 },
-        { severity: 'warning', 'for': '1h', long: '1d', short: '2h', factor: 3 },
-        { severity: 'warning', 'for': '3h', long: '3d', short: '6h', factor: 1 },
-      ],
     } + param,
 
     name: '%s rules' % slo.sloName,
