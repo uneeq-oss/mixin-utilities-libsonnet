@@ -255,7 +255,20 @@ local p = g.target.prometheus.new;
         .addThresholdStep(value=slo.errorObjective, color='yellow')
         .addThresholdStep(value=slo.errorObjective + slo.errorBudget * 0.1, color='green')
         .setFieldConfig(unit='percentunit', max=1.1)
-        .setGridPos(w=4, h=4),
+        .setGridPos(w=4, h=4) + {
+          fieldConfig+: { defaults+: {
+            // Slightly convoluted method to handle double rounding issues, and then get the length..
+            // E.g. when slo.target == 0.9999, we want to have 4 decimals, but we can't just use
+            // `std.length(std.toString(slo.target))` because `std.toString(slo.target)` returns
+            // "0.99990000000000001".
+            decimals: std.length(
+              std.filter(
+                function(i) std.startsWith(i, '.'),
+                std.split(std.toString(slo.target), '0')
+              )[0]
+            ) - 1,
+          } },
+        },
 
         // Info panel
         grafana.panel.text.new(
